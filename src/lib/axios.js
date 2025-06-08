@@ -1,7 +1,6 @@
-import axios from 'axios';
+import axios from "axios";
 
 export const axiosInstance = axios.create({
-    baseURL: 'http://localhost:5001/api', // Replace with your API base URL 
-    withCredentials: true, // Include credentials (cookies) in requests
-
-})
+  baseURL: "https://chat-backend-q5muc2jd8-anas-projects-dfbef841.vercel.app", // <-- updated backend URL
+  withCredentials: true,
+});

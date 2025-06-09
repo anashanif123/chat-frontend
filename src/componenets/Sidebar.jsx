@@ -15,7 +15,7 @@ const Sidebar = () => {
     if(authUser){
       getUsers();
     }
-  }, [getUsers]);
+  },[authUser,getUsers]);
 
   const filteredUsers = showOnlineOnly
     ? users.filter((user) => onlineUsers.includes(user._id))

@@ -1,9 +1,10 @@
+// authStore.js
 import { create } from "zustand";
 import { axiosInstance } from "../lib/axios";
 import toast from "react-hot-toast";
 import { io } from "socket.io-client";
 
-const BASE_URL = "https://chat-backend-gkj7.onrender.com"; // No /api here for socket
+const BASE_URL = "https://chat-backend-gkj7.onrender.com";
 
 export const useAuthStore = create((set, get) => ({
   authUser: null,
@@ -29,7 +30,6 @@ export const useAuthStore = create((set, get) => ({
 
   signup: async (data) => {
     set({ isSigningUp: true });
-
     try {
       const res = await axiosInstance.post("/auth/signup", data);
       set({ authUser: res.data });
@@ -37,7 +37,6 @@ export const useAuthStore = create((set, get) => ({
       get().connectSocket();
     } catch (error) {
       toast.error(error?.response?.data?.message || "Signup failed");
-      console.log(error);
     } finally {
       set({ isSigningUp: false });
     }
@@ -45,7 +44,6 @@ export const useAuthStore = create((set, get) => ({
 
   login: async (data) => {
     set({ isLoggingIn: true });
-
     try {
       const res = await axiosInstance.post("/auth/login", data);
       set({ authUser: res.data });
@@ -71,7 +69,6 @@ export const useAuthStore = create((set, get) => ({
 
   updateProfile: async (data) => {
     set({ isUpdatingProfile: true });
-
     try {
       const res = await axiosInstance.put("/auth/update-profile", data);
       set({ authUser: res.data });
@@ -87,20 +84,25 @@ export const useAuthStore = create((set, get) => ({
     const { authUser, socket } = get();
     if (!authUser || socket?.connected) return;
 
-    const newSocket = io(BASE_URL, {
-      query: {
-        userId: authUser._id,
-      },
-      withCredentials: true,
-    });
+    try {
+      const newSocket = io(BASE_URL, {
+        query: { userId: authUser._id },
+        withCredentials: true,
+      });
 
-    newSocket.connect();
+      newSocket.on("connect_error", (err) => {
+        console.error("Socket connection error:", err.message);
+      });
 
-    newSocket.on("getOnlineUsers", (userIds) => {
-      set({ onlineUsers: userIds });
-    });
+      newSocket.on("getOnlineUsers", (userIds) => {
+        set({ onlineUsers: userIds });
+      });
 
-    set({ socket: newSocket });
+      newSocket.connect();
+      set({ socket: newSocket });
+    } catch (err) {
+      console.error("Error connecting socket:", err);
+    }
   },
 
   disconnectSocket: () => {
